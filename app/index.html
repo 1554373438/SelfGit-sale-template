@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+  <!--<title></title>-->
+  <meta name="format-detection" content="telephone=no">
+  <!-- safari full screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="white">
+  <meta id="apple-mobile-web-app-title" name="apple-mobile-web-app-title" content="诺诺镑客">
+  <!--build:css css/index.min.css-->
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <link rel="stylesheet" href="../node_modules/mz-ui/lib/style.css">
+
+  <!--endbuild-->
+  <script>
+  var _czc = _czc || [];
+  //绑定siteid，请用您的siteid替换下方"XXXXXXXX"部分
+  _czc.push(["_setAccount", "1264019819"]);
+  </script>
+</head>
+
+<body>
+
+    <div id="index_view" v-if="indexShow">
+      <div class="banner">
+          <img class="share" src="images/share-btn.png" @click="share(1)">
+          <img :src="info.activityTemplate.bannerUrl" alt="" >
+          <img class="sb" src="images/banner-cover.png" alt="">
+      </div>
+      <div class="wrapper" v-cloak>
+        <section>
+            <!--推荐福利-->
+            <img class="main-head" src="images/fuli01.png" alt="" @click="showPop()" v-if="info.recommendWelfare.length>0">
+            <div class="clearfix main-content" v-if="info.recommendWelfare.length>0">
+              <div class="fl content-item" v-for="item in info.recommendWelfare" @click="toDetail(item)">
+                <div class="item-head">
+                  <img :src="item.thumbnailPic" alt="">
+                </div>
+                <div class="item-bottom">
+                  <h3>{{item.welfareName}}</h3>
+                  <h4>{{item.description}}</h4>
+                </div>
+
+              </div>
+            </div>
+            <!--升级福利-->
+            <img class="main-head up-fuli" src="images/fuli02.png" alt="" v-if="info.advancedWelfare.length>0">
+            <div class="clearfix main-content" v-if="info.advancedWelfare.length>0">
+              <div class="fl content-item" v-for="item in info.advancedWelfare" @click="toDetail(item)">
+                  <div class="item-head">
+                      <img :src="item.thumbnailPic" alt="">
+                  </div>
+                  <div class="item-bottom">
+                      <h3>{{item.welfareName}}</h3>
+                      <h4>{{item.description}}</h4>
+                  </div>
+              </div>
+            </div>
+        </section>
+        <footer>
+          <div class="foot-title"><span>活动规则</span></div>
+          <p v-html="info.activityTemplate.ruleDescr"></p>
+
+        </footer>
+      </div>
+     <!-- 弹框 -->
+      <div class="pop-chose" :class="{'show':pop.isChose}" @click="initPop()">
+        <!-- app外邀请好友弹出层 -->
+        <img class="share-guid" src="images/share.png" v-show="pop.isOutShare" alt="">
+
+        <div class="main-pop pop-login" :class="{'show':pop.loginSwitch}" @click="$event.stopPropagation();">
+          <div class="login" :class="{'show':pop.isLoginIndex}" v-show="pop.isLoginIndex">
+              <div class="light-bg">
+                  <div class="top-bar relative">
+                      <i class="icon icon-close" @click="initPop()"></i>
+                      <span class="right-text" @click="registerBtn()">注册</span>
+                  </div>
+                  <div class="text-center margin-free">
+                      <img src="images/login/logo.png" width="60">
+                  </div>
+                  <div class="dbl-margin-horizontal">
+                      <div class="list " id="log_in">
+                          <div class="item item-input dbl-margin-bottom ">
+                              <input  type="text" placeholder="请输入手机号/用户名" v-model="pop.username" maxlength="30">
+                          </div>
+                          <div class="item item-input  dbl-margin-bottom " >
+                              <input id="input-login" type="password" v-model="pop.pwd" maxlength="20" placeholder="请输入登录密码">
+                              <i  :class="{'on': pop.eyeShow, 'light': !pop.eyeShow}" @click="changeType()"></i>
+                          </div>
+                      </div>
+                      <button class="button button-block button-positive" :disabled="!pop.username||!pop.pwd" @click="doLogin()">登录</button>
+                  </div>
+              </div>
+          </div>
+          <div class="register-tel" v-show="pop.isRegister">
+              <div class="top-bar relative">
+                  <i class="icon icon-back" @click="backToLoginIndex()"></i>
+              </div>
+              <div class="dbl-margin-horizontal register ">
+                  <div class="text-center mar-bot-24 ">
+                      <p class="font-18">请输入您的手机号</p>
+                  </div>
+
+                  <div class="item item-input dbl-margin-bottom">
+                      <input class="main-input-fill" type="text" v-model="pop.userTelReg" maxlength="11" placeholder="手机号">
+                  </div>
+                  <div class="read  mar-bot-24 ">
+                      <span class="check-agree" :class="{'on':pop.agree}" @click="pop.agree = !pop.agree"></span>
+                      <span @click="pop.agree = !pop.agree" >阅读并同意</span>
+                      <span class="positive" @click="goPrivacy()">《注册协议与隐私条款》</span>
+                  </div>
+
+                  <button class="button-positive margin-top-30" :disabled="!pop.userTelReg || pop.userTelReg.length<11 || !pop.agree" @click="checkPhone()">下一步</button>
+              </div>
+          </div>
+          <div class="v-code" v-show="pop.vCode">
+              <div class="top-bar relative">
+                  <i class="icon icon-back" @click="backToRegister()"></i>
+              </div>
+              <div class="dbl-margin-horizontal register ">
+                  <div class="text-center mar-bot-24 ">
+                      <p class="font-18">请输入您的手机号</p>
+                      <span class="small-font">短信验证码将发送至你的手机{{pop.userTelReg}}</span>
+                  </div>
+
+                  <div class="item item-input dbl-margin-bottom code">
+                      <input class="main-input-fill" type="text" v-model="pop.userVcode" maxlength="6" placeholder="验证码">
+                      <button v-if="!pop.isOnCount" @click="checkCode()">{{pop.btnText}}</button>
+                      <button v-if="pop.isOnCount" class="send">{{pop.countdown}}s</button>
+                  </div>
+                  <button class="button-positive margin-top-30" :disabled="!pop.userVcode || pop.userVcode.length<6" @click="completeRegister()">完成</button>
+              </div>
+          </div>
+          <div class="code-login" v-show="pop.vcodeLogin">
+                <div class="light-bg">
+                    <div class="top-bar relative">
+                        <i class="icon icon-back" @click="hideVcodeLogin()"></i>
+                        <!--<span class="right-text" @click="registerBtn()">注册</span>-->
+                    </div>
+                    <div class="text-center margin-free">
+                        <img src="images/login/logo.png" width="60">
+                    </div>
+                    <div class="dbl-margin-horizontal">
+                        <div class="list v-code">
+                            <div class="item item-input dbl-margin-bottom">
+                                <input  type="text" maxlength="11" placeholder="请输入手机号" v-model="pop.userTelLog" maxlength="30">
+                            </div>
+                            <div class="item item-input dbl-margin-bottom code code-login">
+                                <input class="main-input-fill" type="text" v-model="pop.userVcode" maxlength="6" placeholder="验证码">
+                                <button v-if="!pop.isOnCount" @click="checkCode()" :disabled="!pop.userTelLog||pop.userTelLog.length<11">{{pop.btnText}}</button>
+                                <button v-if="pop.isOnCount" class="send">{{pop.countdown}}s</button>
+                            </div>
+                        </div>
+                        <button class="button button-block button-positive" :disabled="!pop.userTelLog||!pop.userVcode" @click="doLogin()">登录</button>
+                    </div>
+                </div>
+            </div>
+          <span class="question" v-if="pop.isLoginIndex" @click="showVcodeLogin()">已注册用户可以试试短信登录哦</span>
+      </div>
+      </div>
+      <div class="pop-chose pop-pic" :class="{'show':showPic}">
+          <div class="main-pic" :class="{'show':showPic}">
+            <h3>请输入图形验证码</h3>
+            <div class="input-pic">
+                <input type="text" v-model="pic.code" maxlength="4">
+                <img v-bind:src="pic.imgBase" alt="" @click="getPic()">
+            </div>
+            <div class="row btn-sure no-padding">
+              <button class="col col-50" @click="showPic=false">取消</button>
+              <button class="col col-50" @click="checkPic()" :disabled="!pic.code || pic.code.length<4">确定</button>
+            </div>
+          </div>
+      </div>
+
+      <div class="pop-privacy" :class="{'show':showPrivacy}">
+          <div class="top-bar">
+              <i class="icon icon-close" @click="showPrivacy=false"></i>
+              <p>注册协议与隐私条款</p>
+          </div>
+          <div class="content" v-html="privacyContent">
+
+          </div>
+      </div>
+
+
+    </div>
+    <div id="toastr" class="row row-center" :class="{active: toastrInfo}">
+        <p v-text="toastrInfo"></p>
+    </div>
+
+
+    <!--详情页面-->
+    <div id="detail_view" v-if="detailShow" v-cloak>
+            <div class="head head-detail">
+                <span @click="showIndex()"><img src="images/close.png" alt=""></span>
+            </div>
+            <div class="img-show">
+                <img :src="data.descrPic" alt="">
+            </div>
+            <section :class="{show:data!==''}">
+                <div class="main">
+                    <h2>{{data.welfareName}}</h2>
+                    <h3>{{data.description}}</h3>
+                    <ul>
+                        <li><span>结束时间</span><span>{{data.endTime}}</span></li>
+                        <li><span>剩余件数</span><span>{{data.residualNum}}件</span></li>
+                        <li class="clearfix" v-if="data.limit!='whiteList'"><span class="fl">领取限制</span><span class="fl">{{data.limit}}</span></li>
+                        <li class="clearfix"><span class="fl">温馨提示</span><span class="tip fl" style="margin-right: 0;width:73%">{{data.ps}}</span></li>
+                    </ul>
+                </div>
+            </section>
+            <div class="foot-get">
+                <button class="specical" :disabled=true v-if="info.status==0" v-text="'活动倒计时 '+info.h+':'+info.m+':'+info.s"></button>
+                <button class="specical" v-if="info.status!==0" :disabled="info.status==1 || data.residualNum==0" @click="drawSth()">{{info.status==1?(data.residualNum==0?'已领光':'已领取'):"领取"}}</button>
+            </div>
+
+            <!-- 弹框 -->
+            <div class="pop-chose" :class="{'show':pop.isChose}" @click="pop.isChose=false;">
+                <div class="main-pop" :class="{'show':pop.isChose}">
+                    <span class="pop-text" v-text="pop.text"></span>
+                    <div class="btn-box clearfix">
+                        <button class="see fl" v-if="pop.getSuccess&&isFromApp" @click="checkFuLi()">查看福利</button>
+                        <button class="sure fl" @click="btnSure()">{{pop.getSuccess&&isFromApp?'继续投资':pop.btnSureText}}</button>
+                    </div>
+
+                </div>
+            </div>
+
+
+        <div class="pop-fade"  v-if="pop.choseAddress" @click="closeModel()">
+        </div>
+        <!--地址栏显示-->
+        <div class="address-detail" :class="{'down':pop.close,'show':pop.choseAddress}">
+            <div class="title">填写收货信息<span class="close" @click="closeModel()"><img src="images/close.png" alt=""></span></div>
+            <div class="name"><span>姓名</span><input maxlength="4" type="text" placeholder="填写收货人姓名" v-model="pop.username"></div>
+            <div class="tel"><span>联系电话</span><input type="tel" maxlength="11" placeholder="填写收货人手机号" v-model="pop.userTel"></div>
+            <div class="area" @click="showAddressPicker()"><span>所在地区</span><input type="text" placeholder="填选择所在地区" readonly="true"  v-model="pop.userCity"  ><i class="arrow"></i></div>
+            <div class="detail"><span>详细地址</span><input type="text" placeholder="填补充详细地址" v-model="pop.userDetail"></div>
+            <button @click="subAddress()" :disabled="!pop.username || !pop.userTel  || pop.userTel.length!=11|| !pop.userCity|| !pop.userDetail">提交</button>
+        </div>
+
+
+    </div>
+    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js "></script>
+
+    <!-- build:js js/bower.js -->
+    <!-- bower:js -->
+    <script src="/bower_components/vue/dist/vue.min.js"></script>
+    <script src="/bower_components/js-md5/src/md5.js"></script>
+    <script src="/bower_components/es6-promise/es6-promise.auto.min.js"></script>
+    <script src="/bower_components/axios/dist/axios.js"></script>
+    <!-- endbower -->
+
+    <!--build:js js/util.js-->
+    <script src="js/encryptSign.js"></script>
+    <script src="js/http.js"></script>
+    <script src="js/qs.js"></script>
+    <script src="js/util.js"></script>
+    <script src="js/bridge.js"></script>
+    <script src="js/event.js"></script>
+    <!--endbuild-->
+
+    <!--build:js js/mzui.js-->
+    <script src="../node_modules/mz-ui/lib/index.js"></script>
+    <!-- endbuild -->
+
+    <!--build:js js/main.js-->
+    <script src="js/index.js"></script>
+    <!--endbuild-->
+
+
+    <script type="text/javascript" src="https://m.nonobank.com/nonoutil/js/tongdun.js"></script>
+    <script>
+    var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cspan style='display:none' id='cnzz_stat_icon_1264019819'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s4.cnzz.com/z_stat.php%3Fid%3D1264019819' %3E%3C/script%3E"));
+    </script>
+</body>
+
+</html>
